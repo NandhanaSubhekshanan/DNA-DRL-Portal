@@ -88,7 +88,7 @@ DOCUMENTS = [
     ("Final Project Report", "Complete M.Tech project report."),
 ]
 
-GITHUB_URL = "https://github.com/NandhanaSubhekshanan/Intelligent-Adaptive-DNA-Steganography"  # <- replace
+GITHUB_URL = "https://github.com/NandhanaSubhekshanan/CSE25023-Intelligent-Adaptive-DNA-Steganography"  # <- replace
 
 
 # Leave "value" as None until real, verified results exist. Do NOT enter dummy values.
@@ -115,13 +115,14 @@ SECTIONS = [  # (number, title, icon, short description)
     ("07", "GitHub", "💻", "Source repository."),
 ]
 HOME = "🏠 Home"
+RESULTS_PAGE = "09 · Experimental Results"
 
 
 def page_label(s):
     return f"{s[0]} · {s[1]}"
 
 
-PAGES = [HOME] + [page_label(s) for s in SECTIONS]
+PAGES = [HOME] + [page_label(s) for s in SECTIONS] + [RESULTS_PAGE]
 
 FLOW = [
     "Cover Image", "Preprocessing", "Block Division", "Feature Extraction",
@@ -614,6 +615,7 @@ def main():
         page_label(SECTIONS[4]): page_team,
         page_label(SECTIONS[5]): page_progress,
         page_label(SECTIONS[6]): page_github,
+        RESULTS_PAGE: page_results,
     }
 
     try:
@@ -621,6 +623,142 @@ def main():
     except Exception as exc:  # noqa: BLE001
         st.error("Something went wrong while loading this section: " + str(exc))
     footer()
+
+# =============================================================================
+# EXPERIMENTAL RESULTS
+# =============================================================================
+
+def page_results():
+    sec_head("09", "Experimental Results",
+             "Quantitative evaluation of the proposed DNA-DRL steganography framework.")
+
+    sub("1. Secret Image Size and Performance Metrics")
+
+    size_data = {
+        "Secret Image Size": ["64 × 64", "128 × 128", "256 × 256", "512 × 512"],
+        "Payload (bits)": [32768, 131072, 524288, 2097152],
+        "Payload Rate (bpp)": [0.125, 0.5, 2.0, 8.0],
+        "MSE": [0.14613, 0.59190, 2.36899, 9.35443],
+        "PSNR (dB)": [56.48471, 50.40835, 44.38530, 38.42175],
+        "SSIM": [0.99904, 0.99611, 0.98479, 0.94465],
+        "Bit Accuracy (%)": [100, 100, 100, 100],
+        "Exact Recovery (%)": [100, 100, 100, 100],
+        "Extraction Success (%)": [100, 100, 100, 100],
+        "Embedding Time (s)": [4.60817, 8.15828, 24.92934, 89.07019],
+        "Extraction Time (s)": [0.01922, 0.05217, 0.18414, 0.56461]
+    }
+
+    import pandas as pd
+    size_df = pd.DataFrame(size_data)
+    st.dataframe(size_df, use_container_width=True, hide_index=True)
+
+    sub("Performance Trends")
+
+    c1, c2 = st.columns(2)
+
+    with c1:
+        st.markdown("**PSNR across secret image sizes**")
+        st.line_chart(size_df.set_index("Secret Image Size")[["PSNR (dB)"]])
+
+    with c2:
+        st.markdown("**Embedding time across secret image sizes**")
+        st.line_chart(size_df.set_index("Secret Image Size")[["Embedding Time (s)"]])
+
+    sub("2. Algorithm Comparison Without Noise")
+
+    comparison = {
+        "Secret Image Size": [
+            "64 × 64", "64 × 64", "64 × 64",
+            "128 × 128", "128 × 128", "128 × 128",
+            "256 × 256", "256 × 256", "256 × 256",
+            "512 × 512", "512 × 512", "512 × 512"
+        ],
+        "Algorithm": [
+            "Proposed DNA + PPO", "LSB Replacement", "PVD",
+            "Proposed DNA + PPO", "LSB Replacement", "PVD",
+            "Proposed DNA + PPO", "LSB Replacement", "PVD",
+            "Proposed DNA + PPO", "LSB Replacement", "PVD"
+        ],
+        "MSE": [
+            0.14613, 0.02080, 0.10794,
+            0.59190, 0.08323, 0.56777,
+            2.36899, 0.33325, 2.83715,
+            9.35443, 8.83144, None
+        ],
+        "PSNR (dB)": [
+            56.48471, 64.94924, 57.87192,
+            50.40835, 58.92782, 50.60822,
+            44.38530, 52.90313, 43.68807,
+            38.42175, 38.67089, None
+        ],
+        "SSIM": [
+            0.99904, 0.99984, 0.99929,
+            0.99611, 0.99924, 0.99720,
+            0.98479, 0.99756, 0.98931,
+            0.94465, 0.94936, None
+        ],
+        "Extraction Success": [
+            "100%", "100%", "100%",
+            "100%", "100%", "100%",
+            "100%", "100%", "100%",
+            "100%", "100%", "0%"
+        ]
+    }
+
+    comparison_df = pd.DataFrame(comparison)
+
+    for secret_size in ["64 × 64", "128 × 128", "256 × 256", "512 × 512"]:
+        st.markdown(f"**Secret image: {secret_size}**")
+        st.dataframe(
+            comparison_df[comparison_df["Secret Image Size"] == secret_size]
+            .drop(columns=["Secret Image Size"])
+            .reset_index(drop=True),
+            use_container_width=True,
+            hide_index=True
+        )
+
+    sub("3. Salt-and-Pepper Noise Evaluation")
+
+    noise_data = {
+        "Secret Size": [
+            "64 × 64", "128 × 128", "256 × 256", "512 × 512"
+        ],
+        "0.0005": [
+            ".000305 / 99.97%", ".000226 / 99.98%",
+            ".000231 / 99.98%", ".000252 / 99.97%"
+        ],
+        "0.001": [
+            ".000600 / 99.94%", ".000552 / 99.94%",
+            ".000484 / 99.95%", ".000500 / 99.95%"
+        ],
+        "0.005": [
+            ".002899 / 99.71%", ".002739 / 99.73%",
+            ".002520 / 99.75%", ".002445 / 99.76%"
+        ],
+        "0.01": [
+            ".005005 / 99.50%", ".005137 / 99.49%",
+            ".004883 / 99.51%", ".005011 / 99.50%"
+        ]
+    }
+
+    st.caption("Each cell shows BER / bit accuracy.")
+    noise_df = pd.DataFrame(noise_data)
+    st.dataframe(noise_df, use_container_width=True, hide_index=True)
+
+    sub("4. Key Observations")
+
+    observations = [
+        "Extraction success, bit accuracy and exact recovery are 100% across all four secret image sizes in the reported size evaluation.",
+        "As secret image size increases, payload rate and embedding time increase, while PSNR and SSIM decrease.",
+        "LSB Replacement has lower MSE and higher PSNR than the proposed method in the reported noise-free comparisons.",
+        "At 512 × 512, PVD has 0% extraction success and no reported MSE, PSNR or SSIM values.",
+        "Under salt-and-pepper noise, reported bit accuracy ranges from 99.49% to 99.98% across the tested noise levels."
+    ]
+
+    render('<div class="card">' + bullets(observations) + '</div>')
+
+    note("Results are displayed as supplied for the reported experiments. "
+         "Salt-and-pepper results are BER / bit accuracy pairs.")
 
 
 main()
