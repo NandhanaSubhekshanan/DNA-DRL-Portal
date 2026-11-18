@@ -489,8 +489,7 @@ def page_methodology():
     cards = []
     for m in METRICS:
         has = m["value"] not in (None, "")
-        val = ('<div class="metric-val set">' + esc(m["value"]) + "</div>") if has else \
-              '<div class="metric-val">Results pending</div>'
+        val = ('<div class="metric-val set">' + esc(m["value"]) + "</div>") if has else ""'
         cards.append(card(m["name"], m["desc"], extra=val))
     render(grid(cards, 250))
     
